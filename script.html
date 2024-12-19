@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Unidades</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <style>
+        /* Estilos del modo oscuro */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        body.dark-mode .form-label {
+            color: #ffffff;
+        }
+
+        body.dark-mode .btn-primary {
+            background-color: #1f1f1f;
+            border-color: #333333;
+            color: #ffffff;
+        }
+
+        body.dark-mode .btn-secondary {
+            background-color: #333333;
+            border-color: #444444;
+            color: #ffffff;
+        }
+
+        body.dark-mode .form-control {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #444444;
+        }
+
+        body.dark-mode .form-control::placeholder {
+            color: #bbbbbb;
+        }
+
+        body.dark-mode #resultado {
+            color: #80ff80;
+        }
+
+        /* Estilos del modo claro (para revertir en caso de cambiar) */
+        body {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        .form-control {
+            background-color: #ffffff;
+            color: #495057;
+            border: 1px solid #ced4da;
+        }
+
+        .form-control::placeholder {
+            color: #6c757d;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #0069d9;
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #5a6268;
+            color: #ffffff;
+        }
+
+        /* Mejorar visibilidad en dispositivos móviles */
+        #resultado {
+            font-size: 1.2rem;
+            word-wrap: break-word;
+        }
+
+        /* Añadir padding a la entrada de texto */
+        .form-control {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <!-- Botón para cambiar de tema -->
+        <div class="text-end mb-4">
+            <button id="toggle-theme" class="btn btn-secondary">Modo Oscuro</button>
+        </div>
+
+        <h1 class="text-center text-primary mb-4">Conversor de Unidades</h1>
+
+        <!-- Entrada de valor -->
+        <div class="mb-3">
+            <label for="valor" class="form-label">Valor a convertir:</label>
+            <input type="text" id="valor" class="form-control" placeholder="Introduce un valor">
+        </div>
+
+        <!-- Unidad de origen -->
+        <div class="mb-3">
+            <label for="unidad_origen" class="form-label">Unidad de origen (ej. km):</label>
+            <input type="text" id="unidad_origen" class="form-control" placeholder="Unidad de origen">
+        </div>
+
+        <!-- Unidad de destino -->
+        <div class="mb-3">
+            <label for="unidad_destino" class="form-label">Unidad de destino (ej. m):</label>
+            <input type="text" id="unidad_destino" class="form-control" placeholder="Unidad de destino">
+        </div>
+
+        <!-- Botón para convertir -->
+        <button id="convertir" class="btn btn-primary w-100">Convertir</button>
+
+        <!-- Resultado -->
+        <div id="resultado" class="mt-4 text-center fs-5"></div>
+    </div>
+
+    <script>
+        // Diccionario de conversiones
+        const conversiones = {
+            "m": 1, "km": 1000, "cm": 0.01, "mm": 0.001, "in": 0.0254, "ft": 0.3048, "yd": 0.9144, "mi": 1609.34,
+            "kg": 1, "g": 0.001, "mg": 1e-6, "lb": 0.453592, "oz": 0.0283495, "ton": 1000,
+            "s": 1, "ms": 0.001, "min": 60, "hr": 3600, "day": 86400,
+            "l": 1, "ml": 0.001, "m3": 1000, "cm3": 0.001, "ft3": 28.3168, "in3": 0.0163871,
+            "m/s": 1, "km/h": 1000 / 3600, "mi/h": 1609.34 / 3600, "ft/s": 0.3048,
+        };
+
+        // Función para convertir temperatura
+        function convertirTemperatura(valor, unidadOrigen, unidadDestino) {
+            if (unidadOrigen === unidadDestino) {
+                return valor;
+            } else if (unidadOrigen === "C" && unidadDestino === "F") {
+                return (valor * 9/5) + 32;
+            } else if (unidadOrigen === "F" && unidadDestino === "C") {
+                return (valor - 32) * 5/9;
+            } else if (unidadOrigen === "C" && unidadDestino === "K") {
+                return valor + 273.15;
+            } else if (unidadOrigen === "K" && unidadDestino === "C") {
+                return valor - 273.15;
+            } else if (unidadOrigen === "F" && unidadDestino === "K") {
+                return (valor - 32) * 5/9 + 273.15;
+            } else if (unidadOrigen === "K" && unidadDestino === "F") {
+                return (valor - 273.15) * 9/5 + 32;
+            } else {
+                return null;
+            }
+        }
+
+        // Función para convertir unidades generales
+        function convertirUnidad(valor, unidadOrigen, unidadDestino) {
+            if (conversiones[unidadOrigen] && conversiones[unidadDestino]) {
+                return valor * conversiones[unidadOrigen] / conversiones[unidadDestino];
+            } else {
+                return null;
+            }
+        }
+
+        // Función principal para manejar la conversión
+        function convertir() {
+            const valor = parseFloat(document.getElementById("valor").value);
+            const unidadOrigen = document.getElementById("unidad_origen").value.trim();
+            const unidadDestino = document.getElementById("unidad_destino").value.trim();
+            const resultadoDiv = document.getElementById("resultado");
+
+            if (isNaN(valor)) {
+                resultadoDiv.innerText = "Error: Ingresa un valor numérico válido.";
+                return;
+            }
+
+            let resultado = null;
+            if (["C", "F", "K"].includes(unidadOrigen) && ["C", "F", "K"].includes(unidadDestino)) {
+                resultado = convertirTemperatura(valor, unidadOrigen, unidadDestino);
+            } else {
+                resultado = convertirUnidad(valor, unidadOrigen, unidadDestino);
+            }
+
+            if (resultado !== null) {
+                resultadoDiv.innerText = `Resultado: ${resultado.toFixed(6)} ${unidadDestino}`;
+            } else {
+                resultadoDiv.innerText = "Error: Conversión no soportada.";
+            }
+        }
+
+        // Función para alternar entre claro y oscuro
+        function toggleTheme() {
+            const body = document.body;
+            const themeButton = document.getElementById("toggle-theme");
+
+            body.classList.toggle("dark-mode");
+
+            if (body.classList.contains("dark-mode")) {
+                themeButton.innerText = "Modo Claro";
+            } else {
+                themeButton.innerText = "Modo Oscuro";
+            }
+        }
+
+        // Asignar los eventos usando onclick y touchstart para móviles
+        const convertirButton = document.getElementById("convertir");
+        const themeButton = document.getElementById("toggle-theme");
+
+        convertirButton.onclick = convertir;
+        themeButton.onclick = toggleTheme;
+
+        // Añadir soporte para dispositivos táctiles
+        convertirButton.addEventListener("touchstart", function(event) {
+            event.preventDefault(); // Evitar que el evento de toque pase a otras funciones
+            convertir();
+        });
+
+        themeButton.addEventListener("touchstart", function(event) {
+            event.preventDefault(); // Evitar que el evento de toque pase a otras funciones
+            toggleTheme();
+        });
+    </script>
+</body>
+</html>
 
